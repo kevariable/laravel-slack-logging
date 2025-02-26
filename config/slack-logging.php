@@ -23,6 +23,5 @@ return [
 
     'environments' => [
         'production',
-        'local',
     ],
 ];
