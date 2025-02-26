@@ -33,14 +33,15 @@ Then, add the Slack logging channel to your `config/logging.php` file:
 ```php
 'channels' => [
     'stack' => [
-            'driver' => 'stack',
-            'channels' => ['single', 'slack'],
-            'ignore_exceptions' => false,
+        'driver' => 'stack',
+        'channels' => ['single', 'slack'],
+        ...
+    ],
 
-      'slack' => [
-            'driver' => 'slack-logging',
-            ...
-        ],
+    'slack' => [
+        'driver' => 'slack-logging',
+        ...
+    ],
 ],
 ```
 
