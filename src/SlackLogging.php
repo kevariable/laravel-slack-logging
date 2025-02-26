@@ -163,7 +163,7 @@ class SlackLogging
      */
     private function logError($exception): void
     {
-        $date = date('Y-m-d H:i:s');
+        $date = date(format: 'Y-m-d H:i:s');
 
         $slack = (new SlackMessage)
             ->headerBlock(
@@ -173,21 +173,21 @@ class SlackLogging
             )
             ->dividerBlock()
             ->sectionBlock(function (SectionBlock $block) use ($exception, $date) {
+                $block->field("*{$exception['exception']}*")->markdown();
                 $block->field("*Full URL:*\n{$exception['fullUrl']}")->markdown();
                 $block->field("*Class Exception:*\n{$exception['class']}")->markdown();
                 $block->field("*File:*\n{$exception['file']}")->markdown();
                 $block->field("*Line:*\n{$exception['line']}")->markdown();
                 $block->field("*Date:*\n{$date}")->markdown();
-
-                if (filled($this->getUser())) {
-                    $block->field("*User:*\n{$this->getUser()['email']}")->markdown();
-                }
-            })
-            ->sectionBlock(function (SectionBlock $block) use ($exception) {
-                $block->text("*Error:*\n{$exception['error']}")->markdown();
             });
 
-        Http::post(url: config('slack-logging.webhook_url'), data: $slack->toArray());
+        $url = config('slack-logging.webhook_url');
+
+        if (blank($url)) {
+            return;
+        }
+
+        Http::post(url: $url, data: $slack->toArray());
     }
 
     public function isSleepingException(array $data): bool
