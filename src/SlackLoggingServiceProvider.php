@@ -21,7 +21,7 @@ class SlackLoggingServiceProvider extends PackageServiceProvider
         parent::register();
 
         $this->app->singleton('slack-logging', function () {
-            return new SlackLogging();
+            return new SlackLogging;
         });
 
         if ($this->app['log'] instanceof LogManager) {

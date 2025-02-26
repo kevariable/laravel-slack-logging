@@ -2,9 +2,9 @@
 
 namespace Kevariable\SlackLogging;
 
+use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Level;
 use Throwable;
-use Monolog\Handler\AbstractProcessingHandler;
 
 class SlackLoggingHandler extends AbstractProcessingHandler
 {

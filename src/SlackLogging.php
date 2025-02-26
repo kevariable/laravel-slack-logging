@@ -78,7 +78,7 @@ class SlackLogging
             'COOKIE' => Request::cookie(),
             'SESSION' => Request::hasSession() ? Session::all() : [],
             'HEADERS' => Request::header(),
-            'PARAMETERS' => $this->filterParameterValues(Request::all())
+            'PARAMETERS' => $this->filterParameterValues(Request::all()),
         ];
 
         $data['storage'] = array_filter($data['storage']);
@@ -112,10 +112,6 @@ class SlackLogging
         return $data;
     }
 
-    /**
-     * @param array $parameters
-     * @return array
-     */
     public function filterParameterValues(array $parameters): array
     {
         return collect($parameters)->map(function ($value) {
@@ -138,9 +134,6 @@ class SlackLogging
     /**
      * Gets information from the line.
      *
-     * @param $lines
-     * @param $line
-     * @param $i
      *
      * @return array|void
      */
@@ -150,7 +143,7 @@ class SlackLogging
 
         $index = $currentLine - 1;
 
-        if (!array_key_exists($index, $lines)) {
+        if (! array_key_exists($index, $lines)) {
             return;
         }
 
@@ -160,10 +153,6 @@ class SlackLogging
         ];
     }
 
-    /**
-     * @param $exceptionClass
-     * @return bool
-     */
     public function isSkipException($exceptionClass): bool
     {
         return in_array($exceptionClass, config('slack-logging.except'));
@@ -194,7 +183,7 @@ class SlackLogging
                     $block->field("*User:*\n{$this->getUser()['email']}")->markdown();
                 }
             })
-            ->sectionBlock(function (SectionBlock $block) use ($exception, $date) {
+            ->sectionBlock(function (SectionBlock $block) use ($exception) {
                 $block->text("*Error:*\n{$exception['error']}")->markdown();
             });
 
@@ -212,7 +201,7 @@ class SlackLogging
 
     private function createExceptionString(array $data): string
     {
-        return 'slack-logging.' . Str::slug($data['host'] . '_' . $data['method'] . '_' . $data['exception'] . '_' . $data['line'] . '_' . $data['file'] . '_' . $data['class']);
+        return 'slack-logging.'.Str::slug($data['host'].'_'.$data['method'].'_'.$data['exception'].'_'.$data['line'].'_'.$data['file'].'_'.$data['class']);
     }
 
     public function getUser(): ?array
@@ -228,5 +217,4 @@ class SlackLogging
 
         return null;
     }
-
 }
