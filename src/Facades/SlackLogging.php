@@ -17,12 +17,10 @@ class SlackLogging extends Facade
 {
     /**
      * Replace the bound instance with a fake.
-     *
-     * @return void
      */
     public static function fake(): void
     {
-        static::swap(new SlackLoggingFake());
+        static::swap(new SlackLoggingFake);
     }
 
     protected static function getFacadeAccessor(): string

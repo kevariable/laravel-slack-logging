@@ -11,7 +11,6 @@ use Illuminate\Notifications\Slack\SlackMessage;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
@@ -190,6 +189,7 @@ class SlackLogging
             Http::post(url: $url, data: $slack->toArray());
         } catch (RequestException $e) {
             $e->getResponse();
+
             return;
         } catch (\Exception $e) {
             return;

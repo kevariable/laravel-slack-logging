@@ -29,6 +29,7 @@ class SlackLoggingServiceProvider extends PackageServiceProvider
                 $handler = new SlackLoggingHandler(
                     $app['slack-logging'],
                 );
+
                 return new Logger('slack-logging', [$handler]);
             });
         }

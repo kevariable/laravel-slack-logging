@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Log;
 use Kevariable\SlackLogging\Facades\SlackLogging;
+
 use function Pest\Laravel\get;
 
 beforeEach(function () {

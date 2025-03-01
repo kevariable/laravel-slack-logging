@@ -6,7 +6,7 @@ use PHPUnit\Framework\Assert as PHPUnit;
 
 class SlackLoggingFake extends SlackLogging
 {
-    /** @var class-string[] $exceptions */
+    /** @var class-string[] */
     public array $exceptions = [];
 
     public function assertRequestsSent(int $expectedCount): void
@@ -15,8 +15,8 @@ class SlackLoggingFake extends SlackLogging
     }
 
     /**
-     * @param mixed $throwable
-     * @param callable|null $callback
+     * @param  mixed  $throwable
+     * @param  callable|null  $callback
      */
     public function assertNotSent($throwable, $callback = null): void
     {
@@ -39,8 +39,8 @@ class SlackLoggingFake extends SlackLogging
     }
 
     /**
-     * @param mixed $throwable
-     * @param callable|null $callback
+     * @param  mixed  $throwable
+     * @param  callable|null  $callback
      */
     public function assertSent($throwable, $callback = null): void
     {
