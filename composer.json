@@ -1,6 +1,6 @@
 {
     "name": "kevariable/laravel-slack-logging",
-    "description": ":package_description",
+    "description": "Report your Errors onto Slack",
     "keywords": [
         "kevariable",
         "laravel",
