@@ -62,7 +62,7 @@ class SlackLogging
         $data['host'] = Request::server('SERVER_NAME');
         $data['method'] = Request::method();
         $data['fullUrl'] = Request::fullUrl();
-        $data['exception'] = $exception->getMessage() ?? '-';
+        $data['exception'] = $exception->getMessage();
         $data['error'] = $exception->getTraceAsString();
         $data['line'] = $exception->getLine();
         $data['file'] = $exception->getFile();
@@ -212,13 +212,11 @@ class SlackLogging
 
     public function getUser(): ?array
     {
-        if (function_exists('auth') && (app() instanceof Application && auth()->check())) {
-            /** @var \Illuminate\Contracts\Auth\Authenticatable $user */
-            $user = auth()->user();
+        /** @var \Illuminate\Contracts\Auth\Authenticatable $user */
+        $user = auth()->user();
 
-            if ($user instanceof Model) {
-                return $user->toArray();
-            }
+        if ($user instanceof Model) {
+            return $user->toArray();
         }
 
         return null;
