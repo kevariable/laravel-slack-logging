@@ -4,7 +4,6 @@ namespace Kevariable\SlackLogging;
 
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Application;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Slack\BlockKit\Blocks\SectionBlock;
 use Illuminate\Notifications\Slack\SlackMessage;
