@@ -1,21 +1,29 @@
 <?php
 
+namespace Kevariable\SlackLogging\Tests;
+
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Kevariable\SlackLogging\Facades\SlackLogging;
+use PHPUnit\Framework\Attributes\Test;
 
-use function Pest\Laravel\get;
+class LoggingTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
 
-beforeEach(function () {
-    SlackLogging::fake();
+        SlackLogging::fake();
 
-    config()->set('logging.channels.slack.driver', 'slack-logging');
-    config()->set('logging.channels.stack.channels', ['single', 'slack']);
-    config()->set('slack-logging.environments', ['testing']);
-});
+        config()->set('logging.channels.slack.driver', 'slack-logging');
+        config()->set('logging.channels.stack.channels', ['single', 'slack']);
+        config()->set('slack-logging.environments', ['testing']);
+    }
 
-it(description: 'will not send log information to slack')
-    ->defer(function (): void {
-        app()['router']->get('/log-information-via-route/{type}', function (string $type) {
+    #[Test]
+    public function it_will_not_send_log_information_to_slack()
+    {
+        $this->app['router']->get('/log-information-via-route/{type}', function (string $type) {
             Log::{$type}('log');
         });
 
@@ -28,16 +36,18 @@ it(description: 'will not send log information to slack')
         $this->get('/log-information-via-route/alert');
         $this->get('/log-information-via-route/emergency');
 
-        SlackLogging::assertRequestsSent(expectedCount: 0);
-    });
+        SlackLogging::assertRequestsSent(0);
+    }
 
-it(description: 'will send log information to slack')
-    ->defer(function (): void {
-        app()['router']->get('/throwables-via-route', function () {
+    #[Test]
+    public function it_will_send_log_information_to_slack()
+    {
+        $this->app['router']->get('/throwables-via-route', function () {
             throw new Exception('Sent to Slack Logging.');
         });
 
-        get('/throwables-via-route');
+        $this->get('/throwables-via-route');
 
-        SlackLogging::assertRequestsSent(expectedCount: 1);
-    });
+        SlackLogging::assertRequestsSent(1);
+    }
+}
