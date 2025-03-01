@@ -2,6 +2,7 @@
 
 namespace Kevariable\SlackLogging;
 
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\UploadedFile;
@@ -10,6 +11,7 @@ use Illuminate\Notifications\Slack\SlackMessage;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
@@ -158,9 +160,6 @@ class SlackLogging
         return in_array($exceptionClass, config('slack-logging.except'));
     }
 
-    /**
-     * @throws \Illuminate\Http\Client\ConnectionException
-     */
     private function logError($exception): void
     {
         $date = date(format: 'Y-m-d H:i:s');
@@ -187,7 +186,14 @@ class SlackLogging
             return;
         }
 
-        Http::post(url: $url, data: $slack->toArray());
+        try {
+            Http::post(url: $url, data: $slack->toArray());
+        } catch (RequestException $e) {
+            $e->getResponse();
+            return;
+        } catch (\Exception $e) {
+            return;
+        }
     }
 
     public function isSleepingException(array $data): bool

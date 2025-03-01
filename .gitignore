@@ -30,5 +30,3 @@ phpstan.neon
 testbench.yaml
 /docs
 /coverage
-
-workbench

@@ -2,20 +2,12 @@
 
 namespace Kevariable\SlackLogging\Tests;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Kevariable\SlackLogging\SlackLoggingServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Kevariable\\SlackLogging\\Database\\Factories\\'.class_basename($modelName).'Factory'
-        );
-    }
+    protected $enablesPackageDiscoveries = true;
 
     protected function getPackageProviders($app): array
     {
