@@ -161,6 +161,7 @@ class SlackLogging
     private function logError($exception): void
     {
         $date = date(format: 'Y-m-d H:i:s');
+        $parameters = $exception['storage']['PARAMETERS'] ?? null;
 
         $slack = (new SlackMessage)
             ->headerBlock(
@@ -176,7 +177,18 @@ class SlackLogging
                 $block->field("*File:*\n{$exception['file']}")->markdown();
                 $block->field("*Line:*\n{$exception['line']}")->markdown();
                 $block->field("*Date:*\n{$date}")->markdown();
-            });
+            })
+            ->when(
+                $parameters !== null,
+                fn (SlackMessage $message) => $message
+                    ->sectionBlock(function (SectionBlock $block) use ($parameters) {
+                        $encodedParameters = json_encode($parameters, JSON_PRETTY_PRINT);
+
+                        $block
+                            ->text("*Payload*: ```{$encodedParameters}```")
+                            ->markdown();
+                    })
+            );
 
         $url = config('slack-logging.webhook_url');
 
@@ -211,11 +223,13 @@ class SlackLogging
 
     public function getUser(): ?array
     {
-        /** @var \Illuminate\Contracts\Auth\Authenticatable $user */
-        $user = auth()->user();
+        if (function_exists('auth') && auth()->check()) {
+            /** @var \Illuminate\Contracts\Auth\Authenticatable $user */
+            $user = auth()->user();
 
-        if ($user instanceof Model) {
-            return $user->toArray();
+            if ($user instanceof Model) {
+                return $user->toArray();
+            }
         }
 
         return null;
