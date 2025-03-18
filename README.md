@@ -7,6 +7,10 @@
 
 Laravel Slack Logging is a package that allows you to send Laravel logs directly to a Slack channel using webhooks. It provides an easy and efficient way to monitor your application's logs in real-time within your Slack workspace.
 
+
+## Preview
+<img width="691" alt="image" src="https://github.com/user-attachments/assets/b3911287-0f0d-4422-8b4e-bccb0607e04f" />
+
 ## Installation
 
 You can install the package via Composer:
