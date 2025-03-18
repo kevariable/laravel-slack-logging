@@ -161,6 +161,7 @@ class SlackLogging
     private function logError($exception): void
     {
         $date = date(format: 'Y-m-d H:i:s');
+        $parameters = $exception['storage']['PARAMETERS'] ?? null;
 
         $slack = (new SlackMessage)
             ->headerBlock(
@@ -177,12 +178,17 @@ class SlackLogging
                 $block->field("*Line:*\n{$exception['line']}")->markdown();
                 $block->field("*Date:*\n{$date}")->markdown();
             })
-            ->sectionBlock(function (SectionBlock $block) use ($exception) {
-                $payload = json_encode(($exception['storage']['PARAMETERS'] ?? []), JSON_PRETTY_PRINT);
-                $block->text(
-                    "*Payload*: ```{$payload}```"
-                )->markdown();
-            });
+            ->when(
+                $parameters !== null,
+                fn (SlackMessage $message) => $message
+                    ->sectionBlock(function (SectionBlock $block) use ($parameters) {
+                        $encodedParameters = json_encode($parameters, JSON_PRETTY_PRINT);
+
+                        $block
+                            ->text("*Payload*: ```{$encodedParameters}```")
+                            ->markdown();
+                    })
+            );
 
         $url = config('slack-logging.webhook_url');
 
