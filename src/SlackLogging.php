@@ -4,6 +4,7 @@ namespace Kevariable\SlackLogging;
 
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Slack\BlockKit\Blocks\SectionBlock;
 use Illuminate\Notifications\Slack\SlackMessage;
@@ -61,7 +62,7 @@ class SlackLogging
         $data['host'] = Request::server('SERVER_NAME');
         $data['method'] = Request::method();
         $data['fullUrl'] = Request::fullUrl();
-        $data['exception'] = $exception->getMessage();
+        $data['exception'] = $exception->getMessage() ?? '-';
         $data['error'] = $exception->getTraceAsString();
         $data['line'] = $exception->getLine();
         $data['file'] = $exception->getFile();
@@ -176,6 +177,12 @@ class SlackLogging
                 $block->field("*File:*\n{$exception['file']}")->markdown();
                 $block->field("*Line:*\n{$exception['line']}")->markdown();
                 $block->field("*Date:*\n{$date}")->markdown();
+            })
+            ->sectionBlock(function (SectionBlock $block) use ($exception) {
+                $payload = json_encode($exception['storage']['PARAMETERS'] ?? [], JSON_PRETTY_PRINT);
+                $block->text(
+                    "*Payload*: ```{$payload}```"
+                )->markdown();
             });
 
         $url = config('slack-logging.webhook_url');
@@ -211,11 +218,13 @@ class SlackLogging
 
     public function getUser(): ?array
     {
-        /** @var \Illuminate\Contracts\Auth\Authenticatable $user */
-        $user = auth()->user();
+        if (function_exists('auth') && (app() instanceof Application && auth()->check())) {
+            /** @var \Illuminate\Contracts\Auth\Authenticatable $user */
+            $user = auth()->user();
 
-        if ($user instanceof Model) {
-            return $user->toArray();
+            if ($user instanceof Model) {
+                return $user->toArray();
+            }
         }
 
         return null;
