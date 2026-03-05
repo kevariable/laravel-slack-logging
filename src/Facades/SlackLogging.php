@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Facade;
 use Kevariable\SlackLogging\SlackLoggingFake;
 
 /**
- * @method static void assertSent($throwable, $callback = null)
  * @method static void assertRequestsSent(int $expectedCount)
- * @method static void assertNotSent($throwable, $callback = null)
- * @method static void assertNothingSent()
  *
  * @see \Kevariable\SlackLogging\SlackLogging
  */
