@@ -2,8 +2,6 @@
 
 namespace Kevariable\SlackLogging;
 
-use GuzzleHttp\Exception\RequestException;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Slack\BlockKit\Blocks\SectionBlock;
 use Illuminate\Notifications\Slack\SlackMessage;
@@ -36,6 +34,8 @@ class SlackLogging
         }
 
         $this->logError($data);
+
+        $this->putExceptionToSleep($data);
 
         return true;
     }
@@ -101,21 +101,13 @@ class SlackLogging
         }
         $data['executor'] = array_filter($data['executor']);
 
-        // to make symfony exception more readable
-        if ($data['class'] == 'Symfony\Component\Debug\Exception\FatalErrorException') {
-            preg_match("~^(.+)' in ~", $data['exception'], $matches);
-            if (isset($matches[1])) {
-                $data['exception'] = $matches[1];
-            }
-        }
-
         return $data;
     }
 
-    public function filterParameterValues(array $parameters): array
+    protected function filterParameterValues(array $parameters): array
     {
         return collect($parameters)->map(function ($value) {
-            if ($this->shouldParameterValueBeFiltered($value)) {
+            if ($value instanceof UploadedFile) {
                 return '...';
             }
 
@@ -124,20 +116,12 @@ class SlackLogging
     }
 
     /**
-     * Determines whether the given parameter value should be filtered.
-     */
-    public function shouldParameterValueBeFiltered(mixed $value): bool
-    {
-        return $value instanceof UploadedFile;
-    }
-
-    /**
      * Gets information from the line.
      *
      *
      * @return array|void
      */
-    private function getLineInfo($lines, $line, $i)
+    protected function getLineInfo($lines, $line, $i)
     {
         $currentLine = $line + $i;
 
@@ -158,7 +142,7 @@ class SlackLogging
         return in_array($exceptionClass, config('slack-logging.except'));
     }
 
-    private function logError($exception): void
+    protected function logError($exception): void
     {
         $date = date(format: 'Y-m-d H:i:s');
         $parameters = $exception['storage']['PARAMETERS'] ?? null;
@@ -198,40 +182,59 @@ class SlackLogging
 
         try {
             Http::post(url: $url, data: $slack->toArray());
-        } catch (RequestException $e) {
-            $e->getResponse();
-
-            return;
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return;
         }
     }
 
     public function isSleepingException(array $data): bool
     {
-        if (config('slack-logging.sleep', 0) == 0) {
+        $sleepSteps = $this->getSleepSteps();
+
+        if ($sleepSteps === []) {
             return false;
         }
 
-        return Cache::has($this->createExceptionString($data));
-    }
+        $cacheKey = $this->createExceptionString($data);
+        $occurrence = Cache::get($cacheKey);
 
-    private function createExceptionString(array $data): string
-    {
-        return 'slack-logging.'.Str::slug($data['host'].'_'.$data['method'].'_'.$data['exception'].'_'.$data['line'].'_'.$data['file'].'_'.$data['class']);
-    }
-
-    public function getUser(): ?array
-    {
-        if (function_exists('auth') && auth()->check()) {
-            /** @var \Illuminate\Contracts\Auth\Authenticatable $user */
-            $user = auth()->user();
-
-            if ($user instanceof Model) {
-                return $user->toArray();
-            }
+        if ($occurrence === null) {
+            return false;
         }
 
-        return null;
+        // Bump occurrence and extend TTL with the next sleep step
+        $nextOccurrence = $occurrence + 1;
+        $ttl = $sleepSteps[min($nextOccurrence - 1, count($sleepSteps) - 1)];
+
+        Cache::put($cacheKey, $nextOccurrence, $ttl);
+
+        return true;
+    }
+
+    protected function putExceptionToSleep(array $data): void
+    {
+        $sleepSteps = $this->getSleepSteps();
+
+        if ($sleepSteps === []) {
+            return;
+        }
+
+        Cache::put($this->createExceptionString($data), 1, $sleepSteps[0]);
+    }
+
+    protected function getSleepSteps(): array
+    {
+        $sleep = config('slack-logging.sleep', 0);
+
+        if (is_int($sleep)) {
+            return $sleep == 0 ? [] : [$sleep];
+        }
+
+        return array_filter((array) $sleep);
+    }
+
+    protected function createExceptionString(array $data): string
+    {
+        return 'slack-logging.'.Str::slug($data['host'].'_'.$data['method'].'_'.$data['exception'].'_'.$data['line'].'_'.$data['file'].'_'.$data['class']);
     }
 }
