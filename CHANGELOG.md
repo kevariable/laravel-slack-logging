@@ -2,7 +2,11 @@
 
 All notable changes to `:package_name` will be documented in this file.
 
-##  v1.2.0 - 2026-03-05
+## v1.3.0 - 2026-06-08
+
+Add Laravel 13 support (illuminate/contracts ^13.0). See #13.
+
+## v1.2.0 - 2026-03-05
 
 ### What's Changed
 
